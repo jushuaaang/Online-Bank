@@ -50,11 +50,14 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true));
-        adapter = new TransactionAdapter(new ArrayList<>());
+        transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
+
+        // Create adapter with proper Transaction type
+        adapter = new TransactionAdapter(requireContext(), new ArrayList<Transaction>());
         transactionsRecyclerView.setAdapter(adapter);
 
-        int spacing = getResources().getDimensionPixelSize(R.dimen.item_spacing);
+        // Add spacing between items
+        int spacing = 8;
         transactionsRecyclerView.addItemDecoration(new SpacingItemDecoration(spacing));
     }
 

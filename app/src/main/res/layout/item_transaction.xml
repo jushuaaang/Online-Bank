@@ -6,24 +6,32 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="0dp"
-    app:cardBackgroundColor="@android:color/transparent">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/white">
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@android:color/transparent">
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <ImageView
-            android:id="@+id/transactionIcon"
+        <FrameLayout
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:padding="8dp"
-            android:background="@drawable/circle_background"/>
+            android:background="@drawable/circle_background"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/transactionIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Transaction Type"/>
+
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -33,18 +41,19 @@
             android:layout_marginStart="16dp">
 
             <TextView
-                android:id="@+id/merchantName"
+                android:id="@+id/transactionDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black"
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/transactionDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/gray"
                 android:textSize="14sp"
-                android:textColor="@color/gray"/>
+                android:layout_marginTop="4dp"/>
         </LinearLayout>
 
         <TextView
@@ -54,5 +63,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp"/>
+
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>
