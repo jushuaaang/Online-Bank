@@ -36,7 +36,7 @@ public class TransactionsFragment extends Fragment {
         transactionsRecyclerView = view.findViewById(R.id.transactionsRecyclerView);
 
         transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new TransactionAdapter(new ArrayList<>());
+        adapter = new TransactionAdapter(requireContext(), new ArrayList<Transaction>());
         transactionsRecyclerView.setAdapter(adapter);
 
         loadTransactions();

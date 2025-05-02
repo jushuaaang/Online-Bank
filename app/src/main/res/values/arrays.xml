@@ -4,6 +4,8 @@
         <item>Electricity</item>
         <item>Water</item>
         <item>Internet</item>
+        <item>Spotify</item>
+        <item>Netflix</item>
         <item>Phone</item>
         <item>Gas</item>
     </string-array>

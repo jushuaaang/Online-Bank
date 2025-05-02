@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Jabank</string>
 
     <!-- Dashboard strings -->
     <string name="bank_icon_desc">Bank Icon</string>
-    <string name="app_title">Online Bank</string>
+    <string name="app_title">Jabank</string>
     <string name="current_balance_label">Current Balance</string>
     <string name="balance_amount">$5,600.00</string>
 
