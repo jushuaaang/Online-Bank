@@ -11,9 +11,13 @@
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/drawable/send_money.xml" value="0.1785" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/drawable/spinner_background.xml" value="0.1785" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/drawable/spotify.xml" value="0.1785" />
+        <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/drawable/success.xml" value="0.1785" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/drawable/water.xml" value="0.1785" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/activity_pay_bills.xml" value="0.2" />
+        <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/activity_receipt.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/activity_send.xml" value="0.2" />
+        <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/activity_top_up.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/fragment_home.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/fragment_settings.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/fragment_transactions.xml" value="0.2" />
@@ -21,6 +25,7 @@
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/spinner_dropdown_item.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/spinner_item.xml" value="0.2" />
         <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/layout/spinner_item_with_icon.xml" value="0.2" />
+        <entry key="..\:/Users/Saman/AndroidStudioProjects/Online-Bank/app/src/main/res/menu/bottom_nav_menu.xml" value="0.2" />
       </map>
     </option>
   </component>

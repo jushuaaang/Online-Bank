@@ -104,7 +104,7 @@ public class SendActivity extends AppCompatActivity {
         String phoneNumber = phoneNumberEditText.getText().toString().replaceAll("[^0-9]", "");
         String amountStr = amountEditText.getText().toString();
 
-        if (phoneNumber.length() < 10) {
+        if (phoneNumber.length() < 10 && phoneNumber.length() > 11) {
             showError("Please enter a valid phone number");
             return;
         }
