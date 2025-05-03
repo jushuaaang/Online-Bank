@@ -272,6 +272,11 @@ public class PayBillsActivity extends AppCompatActivity {
             Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show();
             return;
         }
+        validateInputs();
+        if (!payButton.isEnabled()) {
+            Toast.makeText(this, "Please correct the errors before proceeding", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Intent intent = new Intent();
         intent.putExtra("paymentAmount", amount);
