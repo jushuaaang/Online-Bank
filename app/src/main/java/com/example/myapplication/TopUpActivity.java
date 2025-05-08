@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class TopUpActivity extends AppCompatActivity {
     private EditText amountEditText;
-    private Button topUpButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,33 +19,35 @@ public class TopUpActivity extends AppCompatActivity {
 
         // Initialize views
         amountEditText = findViewById(R.id.amountEditText);
-        topUpButton = findViewById(R.id.topUpButton);
+        Button topUpButton = findViewById(R.id.topUpButton);
         ImageButton backButton = findViewById(R.id.backButton);
 
         // Back button click listener
         backButton.setOnClickListener(v -> finish());
 
         // Top up button click listener
-        topUpButton.setOnClickListener(v -> {
-            String amountStr = amountEditText.getText().toString();
-            if (!amountStr.isEmpty()) {
-                try {
-                    double amount = Double.parseDouble(amountStr);
-                    if (amount > 0) {
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra("amount", amount);
-                        setResult(Activity.RESULT_OK, resultIntent);
-                        finish();
-                    } else {
-                        showError("Please enter a valid amount");
-                    }
-                } catch (NumberFormatException e) {
-                    showError("Please enter a valid number");
+        topUpButton.setOnClickListener(v -> handleTopUp());
+    }
+
+    private void handleTopUp() {
+        String amountStr = amountEditText.getText().toString();
+        if (!amountStr.isEmpty()) {
+            try {
+                double amount = Double.parseDouble(amountStr);
+                if (amount > 0) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("amount", amount);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
+                } else {
+                    showError("Please enter a valid amount");
                 }
-            } else {
-                showError("Please enter an amount");
+            } catch (NumberFormatException e) {
+                showError("Please enter a valid number");
             }
-        });
+        } else {
+            showError("Please enter an amount");
+        }
     }
 
     private void showError(String message) {

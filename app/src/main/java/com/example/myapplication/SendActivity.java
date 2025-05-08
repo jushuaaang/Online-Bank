@@ -24,6 +24,15 @@ public class SendActivity extends AppCompatActivity {
     private ImageButton backButton;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
 
+    // Constants
+    private static final int MIN_PHONE_LENGTH = 10;
+    private static final int MAX_PHONE_LENGTH = 11;
+    private static final double MIN_AMOUNT = 0.01;
+    private static final double MAX_AMOUNT = 10000.0;
+
+    private TextWatcher phoneNumberWatcher;
+    private TextWatcher amountWatcher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +56,7 @@ public class SendActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> finish());
 
         // Phone number validation
-        phoneNumberEditText.addTextChangedListener(new TextWatcher() {
+        phoneNumberWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -56,17 +65,13 @@ public class SendActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String phone = s.toString().replaceAll("[^0-9]", "");
-                if (phone.length() < 10) {
-                    phoneNumberInputLayout.setError("Please enter a valid phone number");
-                } else {
-                    phoneNumberInputLayout.setError(null);
-                }
+                validatePhoneNumber(s.toString());
             }
-        });
+        };
+        phoneNumberEditText.addTextChangedListener(phoneNumberWatcher);
 
         // Amount input formatting
-        amountEditText.addTextChangedListener(new TextWatcher() {
+        amountWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -75,57 +80,60 @@ public class SendActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String amountStr = s.toString();
-                if (!amountStr.isEmpty()) {
-                    try {
-                        double amount = Double.parseDouble(amountStr);
-                        if (amount <= 0) {
-                            amountInputLayout.setError("Amount must be greater than 0");
-                        } else if (amount > 10000) {
-                            amountInputLayout.setError("Maximum amount is $10,000");
-                        } else {
-                            amountInputLayout.setError(null);
-                            amountDisplayText.setText(currencyFormat.format(amount));
-                        }
-                    } catch (NumberFormatException e) {
-                        amountInputLayout.setError("Please enter a valid number");
-                    }
-                } else {
-                    amountInputLayout.setError(null);
-                    amountDisplayText.setText(currencyFormat.format(0));
-                }
+                validateAmount(s.toString());
             }
-        });
+        };
+        amountEditText.addTextChangedListener(amountWatcher);
 
         sendButton.setOnClickListener(v -> processPayment());
+    }
+
+    private void validatePhoneNumber(String phoneNumber) {
+        String sanitizedPhone = phoneNumber.replaceAll("[^0-9]", "");
+        if (sanitizedPhone.length() < MIN_PHONE_LENGTH || sanitizedPhone.length() > MAX_PHONE_LENGTH) {
+            phoneNumberInputLayout.setError("Phone number must be 10-11 digits");
+        } else {
+            phoneNumberInputLayout.setError(null);
+        }
+    }
+
+    private void validateAmount(String amountStr) {
+        if (!amountStr.isEmpty()) {
+            try {
+                double amount = Double.parseDouble(amountStr);
+                if (amount < MIN_AMOUNT) {
+                    amountInputLayout.setError("Amount must be greater than $0.01");
+                } else if (amount > MAX_AMOUNT) {
+                    amountInputLayout.setError("Maximum amount is $10,000");
+                } else {
+                    amountInputLayout.setError(null);
+                    amountDisplayText.setText(currencyFormat.format(amount));
+                }
+            } catch (NumberFormatException e) {
+                amountInputLayout.setError("Please enter a valid number");
+            }
+        } else {
+            amountInputLayout.setError(null);
+            amountDisplayText.setText(currencyFormat.format(0));
+        }
     }
 
     private void processPayment() {
         String phoneNumber = phoneNumberEditText.getText().toString().replaceAll("[^0-9]", "");
         String amountStr = amountEditText.getText().toString();
 
-        if (phoneNumber.length() < 10 && phoneNumber.length() > 11) {
+        if (phoneNumberInputLayout.getError() != null || phoneNumber.isEmpty()) {
             showError("Please enter a valid phone number");
             return;
         }
 
-        if (amountStr.isEmpty()) {
-            showError("Please enter amount");
+        if (amountInputLayout.getError() != null || amountStr.isEmpty()) {
+            showError("Please enter a valid amount");
             return;
         }
 
         try {
             double amount = Double.parseDouble(amountStr);
-            if (amount <= 0) {
-                showError("Please enter a valid amount");
-                return;
-            }
-
-            if (amount > 10000) {
-                showError("Maximum amount is $10,000");
-                return;
-            }
-
             // Format phone number for display
             String formattedPhone = String.format("(%s) %s-%s",
                     phoneNumber.substring(0, 3),
@@ -145,5 +153,17 @@ public class SendActivity extends AppCompatActivity {
 
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove TextWatchers to prevent memory leaks
+        if (phoneNumberWatcher != null) {
+            phoneNumberEditText.removeTextChangedListener(phoneNumberWatcher);
+        }
+        if (amountWatcher != null) {
+            amountEditText.removeTextChangedListener(amountWatcher);
+        }
     }
 }
