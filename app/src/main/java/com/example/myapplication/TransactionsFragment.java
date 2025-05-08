@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,18 +47,24 @@ public class TransactionsFragment extends Fragment {
         Cursor cursor = dbHelper.getAllTransactions();
         List<Transaction> transactions = new ArrayList<>();
 
-        while (cursor != null && cursor.moveToNext()) {
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-            double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
-            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
-            String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-            String date = cursor.getString(cursor.getColumnIndexOrThrow("date"));
-
-            transactions.add(new Transaction(id, amount, type, description, date));
+        if (cursor != null) {
+            try {
+                while (cursor.moveToNext()) {
+                    transactions.add(new Transaction(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("_id")),
+                            cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("type")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("date"))
+                    ));
+                }
+            } finally {
+                cursor.close();
+            }
         }
 
-        if (cursor != null) {
-            cursor.close();
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions found in TransactionsFragment");
         }
 
         adapter.updateTransactions(transactions);

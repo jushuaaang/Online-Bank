@@ -5,8 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -41,15 +41,11 @@ public class DataBaseActivity extends SQLiteOpenHelper {
             + COLUMN_BALANCE + " REAL NOT NULL"
             + ")";
 
-    private SQLiteDatabase db;
+    private final SQLiteDatabase db;
 
     public DataBaseActivity(@NonNull Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         db = this.getWritableDatabase();
-    }
-
-    public DataBaseActivity(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
     }
 
     @Override
@@ -63,7 +59,7 @@ public class DataBaseActivity extends SQLiteOpenHelper {
             values.put(COLUMN_BALANCE, 5600.00);
             db.insert(TABLE_BALANCE, null, values);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DataBaseActivity", "Error creating database: " + e.getMessage(), e);
         }
     }
 
@@ -74,7 +70,7 @@ public class DataBaseActivity extends SQLiteOpenHelper {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_BALANCE);
             onCreate(db);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DataBaseActivity", "Error upgrading database: " + e.getMessage(), e);
         }
     }
 
@@ -108,7 +104,7 @@ public class DataBaseActivity extends SQLiteOpenHelper {
                 balance = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_BALANCE));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DataBaseActivity", "Error fetching balance: " + e.getMessage(), e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -121,33 +117,38 @@ public class DataBaseActivity extends SQLiteOpenHelper {
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_BALANCE, newBalance);
-            db.insert(TABLE_BALANCE, null, values);
+            db.update(TABLE_BALANCE, values, COLUMN_ID + " = (SELECT MAX(" + COLUMN_ID + ") FROM " + TABLE_BALANCE + ")", null);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DataBaseActivity", "Error updating balance: " + e.getMessage(), e);
         }
     }
 
     public void addTransaction(double amount, String type, String description) {
+        if (description == null || description.trim().isEmpty()) {
+            description = "No description provided"; // Default value
+        }
+
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_AMOUNT, amount);
             values.put(COLUMN_TYPE, type);
             values.put(COLUMN_DESCRIPTION, description);
             values.put(COLUMN_DATE, getCurrentDateTime());
-            db.insert(TABLE_TRANSACTIONS, null, values);
+            db.insertOrThrow(TABLE_TRANSACTIONS, null, values);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DataBaseActivity", "Error adding transaction: " + e.getMessage(), e);
         }
     }
 
     public Cursor getAllTransactions() {
+        Cursor cursor = null;
         try {
-            return db.query(TABLE_TRANSACTIONS, null, null, null, null, null,
+            cursor = db.query(TABLE_TRANSACTIONS, null, null, null, null, null,
                     COLUMN_ID + " DESC");
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            Log.e("DataBaseActivity", "Error fetching transactions: " + e.getMessage(), e);
         }
+        return cursor;
     }
 
     private String getCurrentDateTime() {

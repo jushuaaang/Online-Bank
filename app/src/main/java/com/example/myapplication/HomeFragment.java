@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,9 +30,30 @@ public class HomeFragment extends Fragment {
     private TextView balanceAmountText;
     private RecyclerView transactionsRecyclerView;
     private TransactionAdapter adapter;
-    private static final int TOP_UP_REQUEST_CODE = 1;
-    private static final int SEND_REQUEST_CODE = 2;
-    private static final int PAY_BILLS_REQUEST_CODE = 3;
+
+    private ActivityResultLauncher<Intent> topUpLauncher;
+    private ActivityResultLauncher<Intent> sendLauncher;
+    private ActivityResultLauncher<Intent> payBillsLauncher;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        topUpLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> handleActivityResult("TOP_UP", result)
+        );
+
+        sendLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> handleActivityResult("SEND", result)
+        );
+
+        payBillsLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> handleActivityResult("BILL_PAYMENT", result)
+        );
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -51,43 +75,37 @@ public class HomeFragment extends Fragment {
 
     private void setupRecyclerView() {
         transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false));
-
-        // Create adapter with proper Transaction type
-        adapter = new TransactionAdapter(requireContext(), new ArrayList<Transaction>());
+        adapter = new TransactionAdapter(requireContext(), new ArrayList<>());
         transactionsRecyclerView.setAdapter(adapter);
-
-        // Add spacing between items
-        int spacing = 8;
-        transactionsRecyclerView.addItemDecoration(new SpacingItemDecoration(spacing));
+        transactionsRecyclerView.addItemDecoration(new SpacingItemDecoration(8));
     }
 
     private void setupClickListeners(View... views) {
         for (View v : views) {
             v.setOnClickListener(view -> {
                 Intent intent;
-                int requestCode;
+                ActivityResultLauncher<Intent> launcher;
 
                 if (view.getId() == R.id.topUpActionLayout) {
                     intent = new Intent(requireActivity(), TopUpActivity.class);
-                    requestCode = TOP_UP_REQUEST_CODE;
+                    launcher = topUpLauncher;
                 } else if (view.getId() == R.id.sendActionLayout) {
                     intent = new Intent(requireActivity(), SendActivity.class);
-                    requestCode = SEND_REQUEST_CODE;
+                    launcher = sendLauncher;
                 } else {
                     intent = new Intent(requireActivity(), PayBillsActivity.class);
-                    requestCode = PAY_BILLS_REQUEST_CODE;
+                    launcher = payBillsLauncher;
                 }
 
                 intent.putExtra("currentBalance", dbHelper.getBalance());
-                startActivityForResult(intent, requestCode);
+                launcher.launch(intent);
             });
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
+    private void handleActivityResult(String type, ActivityResult result) {
+        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+            Intent data = result.getData();
             double amount = data.getDoubleExtra("amount", 0);
             String description = data.getStringExtra("description");
             double currentBalance = dbHelper.getBalance();
@@ -99,21 +117,22 @@ public class HomeFragment extends Fragment {
 
             dbHelper.beginTransaction();
             try {
-                if (requestCode == TOP_UP_REQUEST_CODE) {
+                if (type.equals("TOP_UP")) {
                     dbHelper.updateBalance(currentBalance + amount);
                     dbHelper.addTransaction(amount, "TOP_UP", description);
                     showToast("Top up successful");
-                } else {
+                } else if (type.equals("SEND") || type.equals("BILL_PAYMENT")) {
                     if (amount > currentBalance) {
                         showToast("Insufficient balance");
                         return;
                     }
                     dbHelper.updateBalance(currentBalance - amount);
-                    String type = (requestCode == SEND_REQUEST_CODE) ? "SEND" : "BILL_PAYMENT";
                     dbHelper.addTransaction(-amount, type, description);
                     showToast(type.equals("SEND") ? "Money sent" : "Bill paid");
                 }
                 dbHelper.setTransactionSuccessful();
+            } catch (Exception e) {
+                showToast("Transaction failed: " + e.getMessage());
             } finally {
                 dbHelper.endTransaction();
             }
@@ -128,17 +147,24 @@ public class HomeFragment extends Fragment {
         Cursor cursor = dbHelper.getAllTransactions();
         List<Transaction> transactions = new ArrayList<>();
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                transactions.add(new Transaction(
-                        cursor.getInt(cursor.getColumnIndexOrThrow("_id")),
-                        cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
-                        cursor.getString(cursor.getColumnIndexOrThrow("type")),
-                        cursor.getString(cursor.getColumnIndexOrThrow("description")),
-                        cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                ));
-            } while (cursor.moveToNext());
-            cursor.close();
+        if (cursor != null) {
+            try {
+                while (cursor.moveToNext()) {
+                    transactions.add(new Transaction(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("_id")),
+                            cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("type")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("date"))
+                    ));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
+        if (transactions.isEmpty()) {
+            showToast("No transactions found");
         }
 
         adapter.updateTransactions(transactions);
