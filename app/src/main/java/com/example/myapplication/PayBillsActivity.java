@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -102,7 +103,7 @@ public class PayBillsActivity extends AppCompatActivity {
                     currentAmount = 0.0;
                     updateAmountDisplay(0.0);
                 }
-                validateInputs();
+                //validateInputs();
             }
         });
 
@@ -116,7 +117,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 } else {
                     accountNumberInputLayout.setError(null);
                 }
-                validateInputs();
+               // validateInputs();
             }
         });
 
@@ -199,7 +200,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 break;
         }
         updateAmountDisplay(currentAmount);
-        validateInputs();
+        //validateInputs();
     }
 
     private void validateInputs() {
@@ -279,9 +280,10 @@ public class PayBillsActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent();
-        intent.putExtra("paymentAmount", amount);
+        intent.putExtra("amount", amount);
         intent.putExtra("billType", billType);
         intent.putExtra("accountNumber", accountNumber);
+        intent.putExtra("description","Payment for " + billType + " bill");
         setResult(RESULT_OK, intent);
         finish();
     }
