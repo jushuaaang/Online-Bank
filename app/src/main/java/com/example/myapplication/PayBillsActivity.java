@@ -279,7 +279,7 @@ public class PayBillsActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent();
-        intent.putExtra("paymentAmount", amount);
+        intent.putExtra("amount", amount);
         intent.putExtra("billType", billType);
         intent.putExtra("accountNumber", accountNumber);
         setResult(RESULT_OK, intent);
