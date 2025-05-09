@@ -117,7 +117,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 } else {
                     accountNumberInputLayout.setError(null);
                 }
-               // validateInputs();
+                // validateInputs();
             }
         });
 
@@ -133,10 +133,6 @@ public class PayBillsActivity extends AppCompatActivity {
                 break;
             case "Water":
                 hint = "Enter Customer ID";
-                accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);
-                break;
-            case "Gas":
-                hint = "Enter Account Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);
                 break;
             case "Internet":
@@ -155,6 +151,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 hint = "Enter Mobile Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_PHONE);
                 break;
+            case "Gas":
             default:
                 hint = "Enter Account Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);

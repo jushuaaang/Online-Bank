@@ -28,4 +28,7 @@
     <string name="please_enter_valid_amount">Please enter a valid amount</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="close">Close</string>
+    <string name="todo">TODO</string>
+    <string name="payment_success">Payment Success</string>
 </resources>
