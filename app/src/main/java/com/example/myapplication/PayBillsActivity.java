@@ -117,7 +117,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 } else {
                     accountNumberInputLayout.setError(null);
                 }
-               // validateInputs();
+                // validateInputs();
             }
         });
 

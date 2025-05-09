@@ -35,6 +35,7 @@ public class TopUpActivity extends AppCompatActivity {
                     if (amount > 0) {
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("amount", amount);
+                        resultIntent.putExtra("description", "Top-up of $" + amount);
                         setResult(Activity.RESULT_OK, resultIntent);
                         finish();
                     } else {

@@ -1,6 +1,8 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,6 +19,8 @@ import java.util.Locale;
 public class SendActivity extends AppCompatActivity {
     private EditText phoneNumberEditText;
     private EditText amountEditText;
+    private EditText nameEditText;
+    private TextView recentTransactionText;
     private TextView amountDisplayText;
     private TextInputLayout phoneNumberInputLayout;
     private TextInputLayout amountInputLayout;
@@ -33,6 +37,9 @@ public class SendActivity extends AppCompatActivity {
     private TextWatcher phoneNumberWatcher;
     private TextWatcher amountWatcher;
 
+    private static final String PREFS_NAME = "TransactionPrefs";
+    private static final String RECENT_TRANSACTION_KEY = "recentTransaction";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +47,7 @@ public class SendActivity extends AppCompatActivity {
 
         initializeViews();
         setupListeners();
+        loadRecentTransaction();
     }
 
     private void initializeViews() {
@@ -47,6 +55,8 @@ public class SendActivity extends AppCompatActivity {
         amountInputLayout = findViewById(R.id.amountInputLayout);
         phoneNumberEditText = findViewById(R.id.phoneNumberEditText);
         amountEditText = findViewById(R.id.amountEditText);
+        nameEditText = findViewById(R.id.nameEditText); // New input for name
+        recentTransactionText = findViewById(R.id.recentTransactionText); // TextView for recent transaction
         amountDisplayText = findViewById(R.id.amountDisplayText);
         sendButton = findViewById(R.id.sendButton);
         backButton = findViewById(R.id.backButton);
@@ -88,6 +98,19 @@ public class SendActivity extends AppCompatActivity {
         sendButton.setOnClickListener(v -> processPayment());
     }
 
+    private void loadRecentTransaction() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String recentTransaction = prefs.getString(RECENT_TRANSACTION_KEY, "No recent transaction");
+        recentTransactionText.setText("Recent Transaction: " + recentTransaction);
+    }
+
+    private void saveRecentTransaction(String transactionNumber) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(RECENT_TRANSACTION_KEY, transactionNumber);
+        editor.apply();
+    }
+
     private void validatePhoneNumber(String phoneNumber) {
         String sanitizedPhone = phoneNumber.replaceAll("[^0-9]", "");
         if (sanitizedPhone.length() < MIN_PHONE_LENGTH || sanitizedPhone.length() > MAX_PHONE_LENGTH) {
@@ -121,6 +144,7 @@ public class SendActivity extends AppCompatActivity {
     private void processPayment() {
         String phoneNumber = phoneNumberEditText.getText().toString().replaceAll("[^0-9]", "");
         String amountStr = amountEditText.getText().toString();
+        String name = nameEditText.getText().toString();
 
         if (phoneNumberInputLayout.getError() != null || phoneNumber.isEmpty()) {
             showError("Please enter a valid phone number");
@@ -132,6 +156,11 @@ public class SendActivity extends AppCompatActivity {
             return;
         }
 
+        if (name.isEmpty()) {
+            showError("Please enter a name");
+            return;
+        }
+
         try {
             double amount = Double.parseDouble(amountStr);
             // Format phone number for display
@@ -140,9 +169,13 @@ public class SendActivity extends AppCompatActivity {
                     phoneNumber.substring(3, 6),
                     phoneNumber.substring(6));
 
+            String transactionNumber = "TXN" + System.currentTimeMillis();
+            saveRecentTransaction(transactionNumber);
+
             Intent resultIntent = new Intent();
             resultIntent.putExtra("amount", amount);
-            resultIntent.putExtra("description", "Send to " + formattedPhone);
+            resultIntent.putExtra("description", "Send to " + formattedPhone + " (" + name + ")");
+            resultIntent.putExtra("transactionNumber", transactionNumber);
             setResult(RESULT_OK, resultIntent);
             finish();
 
