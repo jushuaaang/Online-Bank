@@ -31,4 +31,5 @@
     <string name="close">Close</string>
     <string name="todo">TODO</string>
     <string name="payment_success">Payment Success</string>
+    <string name="payment_failed" />
 </resources>
