@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.util.Log;
+// import android.util.Log; // Not used directly in this snippet after modification
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -15,11 +15,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment; // Import DialogFragment
 import com.google.android.material.textfield.TextInputLayout;
 import java.text.NumberFormat;
+import java.util.Date; // Import Date
 import java.util.Locale;
 
-public class PayBillsActivity extends AppCompatActivity {
+// Add implements ReceiptDialogFragment.ReceiptDialogListener
+public class PayBillsActivity extends AppCompatActivity implements CustomDialog.ReceiptDialogListener {
     private Spinner billTypeSpinner;
     private EditText amountEditText;
     private EditText accountNumberEditText;
@@ -33,6 +36,12 @@ public class PayBillsActivity extends AppCompatActivity {
     private static final double SPOTIFY_AMOUNT = 9.99;
     private static final double NETFLIX_AMOUNT = 15.49;
 
+    // To store data for onReceiptDialogClose if needed by setResult
+    private String lastProcessedBillType;
+    private String lastProcessedAccountNumber;
+    private double lastProcessedAmount;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +50,8 @@ public class PayBillsActivity extends AppCompatActivity {
         initializeViews();
         setupSpinner();
         setupListeners();
+        // You might want to call validateInputs() here if it also handles initial button state
+        validateInputs(); // Added to ensure button state is correct on start
     }
 
     private void initializeViews() {
@@ -67,6 +78,7 @@ public class PayBillsActivity extends AppCompatActivity {
                 String selectedBill = (String) parent.getItemAtPosition(position);
                 updateAccountNumberHint(selectedBill);
                 updateAmountForSubscription(selectedBill);
+                validateInputs(); // Call validateInputs after changes
             }
 
             @Override
@@ -81,29 +93,23 @@ public class PayBillsActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 String selectedBill = billTypeSpinner.getSelectedItem().toString();
-                if (selectedBill.equals("Spotify") || selectedBill.equals("Netflix")) return;
-
-                try {
-                    if (!s.toString().isEmpty()) {
-                        currentAmount = Double.parseDouble(s.toString());
-                        if (currentAmount < MIN_AMOUNT) {
-                            amountInputLayout.setError("Minimum amount is $" + MIN_AMOUNT);
-                        } else if (currentAmount > MAX_AMOUNT) {
-                            amountInputLayout.setError("Maximum amount is $" + MAX_AMOUNT);
+                // For Spotify/Netflix, amount is fixed and handled by updateAmountForSubscription
+                if (selectedBill.equals("Spotify") || selectedBill.equals("Netflix")) {
+                    // currentAmount is already set by updateAmountForSubscription
+                    // No further action needed here for amount parsing for these types
+                } else {
+                    try {
+                        if (!s.toString().isEmpty()) {
+                            currentAmount = Double.parseDouble(s.toString());
                         } else {
-                            amountInputLayout.setError(null);
+                            currentAmount = 0.0;
                         }
-                    } else {
-                        currentAmount = 0.0;
-                        amountInputLayout.setError(null);
+                    } catch (NumberFormatException e) {
+                        currentAmount = 0.0; // Reset on error
                     }
-                    updateAmountDisplay(currentAmount);
-                } catch (NumberFormatException e) {
-                    amountInputLayout.setError("Please enter a valid number");
-                    currentAmount = 0.0;
-                    updateAmountDisplay(0.0);
                 }
-                //validateInputs();
+                updateAmountDisplay(currentAmount); // Always update display
+                validateInputs(); // Call validateInputs after changes
             }
         });
 
@@ -112,12 +118,7 @@ public class PayBillsActivity extends AppCompatActivity {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.toString().trim().isEmpty()) {
-                    accountNumberInputLayout.setError("Please enter account number");
-                } else {
-                    accountNumberInputLayout.setError(null);
-                }
-               // validateInputs();
+                validateInputs(); // Call validateInputs after changes
             }
         });
 
@@ -126,6 +127,8 @@ public class PayBillsActivity extends AppCompatActivity {
 
     private void updateAccountNumberHint(String billType) {
         String hint;
+        // Reset error for account number when bill type changes
+        accountNumberInputLayout.setError(null);
         switch (billType) {
             case "Electricity":
                 hint = "Enter Meter Number";
@@ -133,10 +136,6 @@ public class PayBillsActivity extends AppCompatActivity {
                 break;
             case "Water":
                 hint = "Enter Customer ID";
-                accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);
-                break;
-            case "Gas":
-                hint = "Enter Account Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);
                 break;
             case "Internet":
@@ -155,15 +154,19 @@ public class PayBillsActivity extends AppCompatActivity {
                 hint = "Enter Mobile Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_PHONE);
                 break;
+            case "Gas":
             default:
                 hint = "Enter Account Number";
                 accountNumberEditText.setInputType(InputType.TYPE_CLASS_TEXT);
                 break;
         }
         accountNumberInputLayout.setHint(hint);
+        accountNumberEditText.setText(""); // Clear account number field when type changes
     }
 
     private void updateAmountForSubscription(String billType) {
+        // Reset error for amount when bill type changes
+        amountInputLayout.setError(null);
         switch (billType) {
             case "Spotify":
                 amountEditText.setText(String.valueOf(SPOTIFY_AMOUNT));
@@ -177,30 +180,24 @@ public class PayBillsActivity extends AppCompatActivity {
                 currentAmount = NETFLIX_AMOUNT;
                 amountInputLayout.setHint("Subscription Amount");
                 break;
-            case "Internet":
-                amountEditText.setText("");
-                amountEditText.setEnabled(true);
-                amountInputLayout.setHint("Enter Monthly Bill Amount");
-                amountEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                currentAmount = 0.0;
-                break;
-            case "Phone":
-                amountEditText.setText("");
-                amountEditText.setEnabled(true);
-                amountInputLayout.setHint("Enter Load Amount");
-                amountEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                currentAmount = 0.0;
-                break;
+            // case "Internet": // Your existing logic for Internet, Phone, default
+            // case "Phone":
             default:
-                amountEditText.setText("");
+                amountEditText.setText(""); // Clear for others
                 amountEditText.setEnabled(true);
-                amountInputLayout.setHint("Amount");
+                if (billType.equals("Internet")) {
+                    amountInputLayout.setHint("Enter Monthly Bill Amount");
+                } else if (billType.equals("Phone")) {
+                    amountInputLayout.setHint("Enter Load Amount");
+                } else {
+                    amountInputLayout.setHint("Amount");
+                }
                 amountEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                currentAmount = 0.0;
+                currentAmount = 0.0; // Reset currentAmount if field is cleared or type changes to non-subscription
                 break;
         }
         updateAmountDisplay(currentAmount);
-        //validateInputs();
+        // validateInputs(); // Called by onItemSelected listener in setupSpinner
     }
 
     private void validateInputs() {
@@ -215,76 +212,101 @@ public class PayBillsActivity extends AppCompatActivity {
             switch (selectedBill) {
                 case "Netflix":
                     isValidAccount = android.util.Patterns.EMAIL_ADDRESS.matcher(accountNumber).matches();
-                    if (!isValidAccount) {
-                        accountNumberInputLayout.setError("Please enter a valid email");
-                    } else {
-                        accountNumberInputLayout.setError(null);
-                    }
+                    accountNumberInputLayout.setError(isValidAccount ? null : "Please enter a valid email");
                     break;
                 case "Electricity":
-                    isValidAccount = accountNumber.matches("\\d+");
-                    if (!isValidAccount) {
-                        accountNumberInputLayout.setError("Please enter a valid meter number");
-                    } else {
-                        accountNumberInputLayout.setError(null);
-                    }
+                    isValidAccount = accountNumber.matches("\\d+"); // Check if all digits
+                    accountNumberInputLayout.setError(isValidAccount ? null : "Please enter a valid meter number");
                     break;
                 case "Phone":
                     isValidAccount = accountNumber.matches("^\\d{10,11}$");
-                    if (!isValidAccount) {
-                        accountNumberInputLayout.setError("Enter a valid 10-11 digit number");
-                    } else {
-                        accountNumberInputLayout.setError(null);
-                    }
+                    accountNumberInputLayout.setError(isValidAccount ? null : "Enter a valid 10-11 digit number");
                     break;
                 default:
-                    accountNumberInputLayout.setError(null);
+                    accountNumberInputLayout.setError(null); // Clear error for other types if not empty
                     break;
             }
         }
 
-        boolean isValidAmount = currentAmount >= MIN_AMOUNT && currentAmount <= MAX_AMOUNT;
-        if (!isValidAmount && amountEditText.isEnabled()) {
-            if (currentAmount < MIN_AMOUNT) {
-                amountInputLayout.setError("Minimum amount is $" + MIN_AMOUNT);
+        boolean isValidAmount = true;
+        if (amountEditText.isEnabled()) { // Only validate amount if EditText is enabled
+            if (amountEditText.getText().toString().isEmpty() && currentAmount == 0.0) {
+                // Show error only if the field is empty AND currentAmount is also 0 (e.g. after programmatic clear)
+                amountInputLayout.setError("Amount is required");
+                isValidAmount = false;
+            } else if (currentAmount < MIN_AMOUNT) {
+                amountInputLayout.setError("Minimum amount is " + NumberFormat.getCurrencyInstance(Locale.US).format(MIN_AMOUNT));
+                isValidAmount = false;
             } else if (currentAmount > MAX_AMOUNT) {
-                amountInputLayout.setError("Maximum amount is $" + MAX_AMOUNT);
+                amountInputLayout.setError("Maximum amount is " + NumberFormat.getCurrencyInstance(Locale.US).format(MAX_AMOUNT));
+                isValidAmount = false;
+            } else {
+                amountInputLayout.setError(null);
             }
-        } else {
+        } else { // If amountEditText is disabled (Spotify/Netflix), amount is considered valid.
             amountInputLayout.setError(null);
+            isValidAmount = true;
         }
 
-        boolean isValid = isValidAccount && isValidAmount;
-        payButton.setEnabled(isValid);
-        payButton.setAlpha(isValid ? 1.0f : 0.5f);
+
+        boolean enableButton = isValidAccount && isValidAmount;
+        payButton.setEnabled(enableButton);
+        payButton.setAlpha(enableButton ? 1.0f : 0.5f);
     }
 
     private void updateAmountDisplay(double amount) {
         String formattedAmount = NumberFormat.getCurrencyInstance(Locale.US).format(amount);
-        amountDisplayText.setText("Amount: " + formattedAmount);
+        amountDisplayText.setText(formattedAmount); // Set only the formatted amount
     }
 
     private void processPayment() {
-        String accountNumber = accountNumberEditText.getText().toString();
-        String billType = billTypeSpinner.getSelectedItem().toString();
-        double amount = currentAmount;
-
-        if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
-            Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // Perform a final validation before proceeding
         validateInputs();
         if (!payButton.isEnabled()) {
             Toast.makeText(this, "Please correct the errors before proceeding", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        String accountNumber = accountNumberEditText.getText().toString().trim();
+        String billType = billTypeSpinner.getSelectedItem().toString();
+        // currentAmount is already up-to-date
+
+        // Store for onReceiptDialogClose
+        lastProcessedBillType = billType;
+        lastProcessedAccountNumber = accountNumber;
+        lastProcessedAmount = currentAmount;
+
+        String transactionRef = "BILLPAY_" + System.currentTimeMillis();
+        ReceiptDetails receiptData = new ReceiptDetails(
+                "Bill Payment", // General Transaction Type for the receipt title
+                NumberFormat.getCurrencyInstance(Locale.US).format(currentAmount),
+                transactionRef,
+                new Date().getTime(),
+                true, // Assuming success for now
+                "Payment for " + billType + " to " + accountNumber,
+                null, // No recipient name for bill pay in this context
+                billType // Biller name can be the billType itself or more specific if available
+        );
+        showReceipt(receiptData);
+    }
+
+    // --- ADDED FOR RECEIPT DIALOG ---
+    private void showReceipt(ReceiptDetails details) {
+        CustomDialog dialogFragment = CustomDialog.newInstance(details);
+        dialogFragment.setReceiptDialogListener(this);
+        dialogFragment.show(getSupportFragmentManager(), CustomDialog.TAG);
+    }
+
+    @Override
+    public void onReceiptDialogClose(DialogFragment dialog) {
+        // This is where you now finish the activity and set the result
         Intent intent = new Intent();
-        intent.putExtra("amount", amount);
-        intent.putExtra("billType", billType);
-        intent.putExtra("accountNumber", accountNumber);
-        intent.putExtra("description","Payment for " + billType + " bill");
+        intent.putExtra("amount", lastProcessedAmount);
+        intent.putExtra("billType", lastProcessedBillType);
+        intent.putExtra("accountNumber", lastProcessedAccountNumber);
+        intent.putExtra("description", "Payment for " + lastProcessedBillType + " bill");
         setResult(RESULT_OK, intent);
         finish();
     }
+    // --- END OF ADDED CODE ---
 }
