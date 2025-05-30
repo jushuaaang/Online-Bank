@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -141,6 +142,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private void refreshDashboard() {
         balanceAmountText.setText(String.format("$%.2f", dbHelper.getBalance()));
 

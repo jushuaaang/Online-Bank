@@ -1,26 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/white">
+    android:background="@color/white"
+    tools:context=".SettingsFragment"> <!-- Make sure .SettingsFragment matches your fragment class -->
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/white"
-        android:elevation="4dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- YOUR EXISTING TOOLBAR - KEPT AS IS -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_marginStart="32dp"/>
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Profile Display Area - ADDED BELOW TOOLBAR -->
+        <LinearLayout
+            android:id="@+id/profile_display_area"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:layout_marginStart="32dp"/>
-    </androidx.appcompat.widget.Toolbar>
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-</LinearLayout>
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="12dp"
+                android:contentDescription="@string/profile_picture_desc"
+                app:srcCompat="@drawable/ic_profile_placeholder" /> <!-- Ensure ic_profile_placeholder exists -->
+
+            <TextView
+                android:id="@+id/nameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="@color/black"
+                android:layout_marginBottom="4dp"
+                tools:text="User Name" />
+
+            <!-- Define dark_gray in colors.xml -->
+            <TextView
+                android:id="@+id/emailTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="@color/dark_gray"
+                tools:text="user@example.com" />
+        </LinearLayout>
+
+        <!-- Divider - ADDED -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Action Buttons - ADDED -->
+        <Button
+            android:id="@+id/profileButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/profile_button_label"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textAllCaps="false"
+            android:drawablePadding="16dp" /> <!-- Optional: create ic_person_settings drawable -->
+
+        <Button
+            android:id="@+id/logoutButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/log_out"
+            android:textColor="?attr/colorError"  android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textAllCaps="false"
+            android:drawablePadding="16dp" /> <!-- Optional: create ic_logout drawable -->
+
+        <Button
+            android:id="@+id/aboutUsButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/about_us"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textAllCaps="false"
+            android:drawablePadding="16dp" /> <!-- Optional: create ic_info_outline drawable -->
+
+    </LinearLayout>
+</ScrollView>

@@ -18,4 +18,5 @@
     <color name="internet_blue">#0288D1</color>
     <color name="expense_red">#E53935</color>
     <color name="income_green">#43A047</color>
+    <color name="dark_gray">#A9A9A9</color>
 </resources>

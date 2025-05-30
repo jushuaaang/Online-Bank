@@ -1,8 +1,11 @@
 package com.example.myapplication;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -17,43 +20,63 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (UserCredentialManager.getLoggedInUser(this) == null) {
+            Intent intent = new Intent(MainActivity.this, LogInActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottomNavView);
         setupBottomNavigation();
 
-        // Restore the selected fragment or load the default one
         if (savedInstanceState == null) {
             openFragment(new HomeFragment());
         }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frameLayout);
+                if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                    getSupportFragmentManager().popBackStack();
+                } else if (!(currentFragment instanceof HomeFragment)) {
+                    openFragment(new HomeFragment());
+                    bottomNav.setSelectedItemId(R.id.nav_home);
+                }
+                else {
+                    finish();
+                }
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")
     private void setupBottomNavigation() {
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
-            switch (item.getItemId()) {
-                case R.id.nav_home:
-                    selectedFragment = new HomeFragment();
-                    break;
-                case R.id.nav_transactions:
-                    selectedFragment = new TransactionsFragment();
-                    break;
-                case R.id.nav_settings:
-                    selectedFragment = new SettingsFragment();
-                    break;
-                default:
-                    return false;
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_transactions) {
+                selectedFragment = new TransactionsFragment();
+            } else if (itemId == R.id.nav_settings) {
+                selectedFragment = new SettingsFragment();
+            } else {
+                return false;
             }
-            if (selectedFragment != null) {
-                openFragment(selectedFragment);
-            }
+
+            openFragment(selectedFragment);
             return true;
         });
     }
 
     private void openFragment(@NonNull Fragment fragment) {
-        // Avoid reloading the same fragment
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frameLayout);
         if (currentFragment != null && currentFragment.getClass().equals(fragment.getClass())) {
             return;
@@ -61,16 +84,18 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frameLayout, fragment);
+
+        if (!(fragment instanceof HomeFragment)) {
+            transaction.addToBackStack(null);
+        }
         transaction.commit();
     }
 
-    @Override
-    public void onBackPressed() {
-        // Handle back navigation
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
-        } else {
-            super.onBackPressed();
-        }
+    private void logoutUser() {
+        UserCredentialManager.logoutUser(MainActivity.this);
+        Intent intent = new Intent(MainActivity.this, LogInActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
