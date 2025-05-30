@@ -51,6 +51,15 @@
         android:layout_marginTop="11dp"
         android:textSize="24sp" />
 
+    <!-- OPTIONAL: ADD THIS FOR RECIPIENT -->
+    <TextView
+        android:id="@+id/recipient"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="11dp"
+        android:textSize="24sp"
+        android:visibility="gone"/> <!-- Start as gone, CustomDialog will make it visible if data exists -->
+
     <TextView
         android:id="@+id/amount"
         android:layout_width="wrap_content"

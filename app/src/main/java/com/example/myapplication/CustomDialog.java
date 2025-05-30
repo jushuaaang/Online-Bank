@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+// import androidx.core.content.ContextCompat; // No longer needed for getString with format args
 import androidx.fragment.app.DialogFragment;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,12 +52,14 @@ public class CustomDialog extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // --- Find Views ---
         ImageView statusIcon = view.findViewById(R.id.statusIcon);
         TextView statusText = view.findViewById(R.id.statusText);
         TextView transactionTypeText = view.findViewById(R.id.paymentMethod);
         TextView amountText = view.findViewById(R.id.amount);
         TextView descriptionText = view.findViewById(R.id.description);
-        TextView partyNameText = view.findViewById(R.id.sender);
+        TextView senderNameText = view.findViewById(R.id.sender); // TextView for the Sender's Name
+        TextView recipientNameText = view.findViewById(R.id.recipient); // TextView for the Recipient's Name (ensure this ID exists in your XML if you need it)
         TextView referenceNumberText = view.findViewById(R.id.referenceNumber);
         TextView paymentTimeText = view.findViewById(R.id.paymentTime);
         Button closeButton = view.findViewById(R.id.closeButton);
@@ -65,16 +68,16 @@ public class CustomDialog extends DialogFragment {
         if (args != null) {
             ReceiptDetails details = args.getParcelable(ARG_RECEIPT_DETAILS);
             if (details != null) {
-                // Status
+                // --- Populate Status ---
                 if (details.isSuccess()) {
-                    statusIcon.setImageResource(R.drawable.success); // Ensure you have this drawable
-                    statusText.setText(R.string.payment_success); // Ensure you have this string
+                    statusIcon.setImageResource(R.drawable.success);
+                    statusText.setText(getString(R.string.payment_success)); // Correct: Fragment's getString
                 } else {
-                    statusIcon.setImageResource(R.drawable.x); // Ensure you have this drawable
-                    statusText.setText(R.string.payment_failed); // Ensure you have this string
+                    statusIcon.setImageResource(R.drawable.x);
+                    statusText.setText(getString(R.string.payment_failed));  // Correct: Fragment's getString
                 }
 
-                // Transaction Type (Title of the receipt)
+                // --- Populate Transaction Type ---
                 if (details.getTransactionType() != null && !details.getTransactionType().isEmpty()) {
                     transactionTypeText.setText(details.getTransactionType());
                     transactionTypeText.setVisibility(View.VISIBLE);
@@ -82,15 +85,15 @@ public class CustomDialog extends DialogFragment {
                     transactionTypeText.setVisibility(View.GONE);
                 }
 
-                // Amount
+                // --- Populate Amount ---
                 if (details.getAmount() != null && !details.getAmount().isEmpty()) {
-                    amountText.setText(details.getAmount()); // Assuming amount is pre-formatted
+                    amountText.setText(details.getAmount());
                     amountText.setVisibility(View.VISIBLE);
                 } else {
                     amountText.setVisibility(View.GONE);
                 }
 
-                // Description
+                // --- Populate Description ---
                 if (details.getDescription() != null && !details.getDescription().isEmpty()) {
                     descriptionText.setText(details.getDescription());
                     descriptionText.setVisibility(View.VISIBLE);
@@ -98,38 +101,46 @@ public class CustomDialog extends DialogFragment {
                     descriptionText.setVisibility(View.GONE);
                 }
 
-
-                // Party Name (Recipient or Biller)
-                String partyName = null;
-                String partyLabel = "";
-                if (details.getRecipientName() != null && !details.getRecipientName().isEmpty()) {
-                    partyName = details.getRecipientName();
-                    partyLabel = "To: "; // Or "Recipient: "
-                }
-
-                if (partyName != null) {
-                    partyNameText.setText(partyLabel + partyName);
-                    partyNameText.setVisibility(View.VISIBLE);
+                // --- Populate SENDER Name ---
+                if (details.getSenderUsername() != null && !details.getSenderUsername().isEmpty()) {
+                    // CORRECTED: Use Fragment's getString for formatted strings
+                    senderNameText.setText(getString(R.string.receipt_from_label, details.getSenderUsername()));
+                    senderNameText.setVisibility(View.VISIBLE);
                 } else {
-                    partyNameText.setVisibility(View.GONE);
+                    // CORRECTED: Use Fragment's getString for formatted strings
+                    senderNameText.setText(getString(R.string.receipt_from_label, "Unknown"));
+                    senderNameText.setVisibility(View.VISIBLE);
                 }
 
+                // --- Populate RECIPIENT Name ---
+                if (recipientNameText != null) {
+                    if (details.getRecipientName() != null && !details.getRecipientName().isEmpty()) {
+                        // CORRECTED: Use Fragment's getString for formatted strings
+                        recipientNameText.setText(getString(R.string.receipt_to_label, details.getRecipientName()));
+                        recipientNameText.setVisibility(View.VISIBLE);
+                    } else {
+                        recipientNameText.setVisibility(View.GONE);
+                    }
+                }
 
-                // Reference Number
+                // --- Populate Reference Number ---
                 if (details.getReferenceNumber() != null && !details.getReferenceNumber().isEmpty()) {
-                    referenceNumberText.setText("Ref: " + details.getReferenceNumber());
+                    // CORRECTED: Use Fragment's getString for formatted strings
+                    referenceNumberText.setText(getString(R.string.receipt_ref_label, details.getReferenceNumber()));
                     referenceNumberText.setVisibility(View.VISIBLE);
                 } else {
                     referenceNumberText.setVisibility(View.GONE);
                 }
 
-                // Payment Time
+                // --- Populate Payment Time ---
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-                paymentTimeText.setText("Date: " + sdf.format(new Date(details.getTimestamp())));
-                paymentTimeText.setVisibility(View.VISIBLE); // Time is usually always present
+                // CORRECTED: Use Fragment's getString for formatted strings
+                paymentTimeText.setText(getString(R.string.receipt_date_label, sdf.format(new Date(details.getTimestamp()))));
+                paymentTimeText.setVisibility(View.VISIBLE);
             }
         }
 
+        // --- Close Button ---
         closeButton.setOnClickListener(v -> {
             if (receiptDialogListener != null) {
                 receiptDialogListener.onReceiptDialogClose(this);
@@ -142,7 +153,6 @@ public class CustomDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-        // Optional: Remove the default dialog title bar for a cleaner look if your layout has its own title
         if (dialog.getWindow() != null) {
             dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         }
@@ -154,14 +164,9 @@ public class CustomDialog extends DialogFragment {
         super.onStart();
         Dialog dialog = getDialog();
         if (dialog != null && dialog.getWindow() != null) {
-            // Set dialog width to a percentage of the screen width or a fixed value
-            // This helps make the dialog look more like a card
-            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90); // 90% of screen width
-            // int height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
             dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            // Optional: Add rounded corners (requires a background drawable with corners)
-            // dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_rounded_background);
+            // dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_rounded_background); // Optional
         }
     }
 }

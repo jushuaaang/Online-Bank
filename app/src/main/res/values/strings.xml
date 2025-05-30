@@ -32,4 +32,15 @@
     <string name="todo">TODO</string>
     <string name="payment_success">Payment Success</string>
     <string name="payment_failed" />
+
+    <!-- Strings for the receipt dialog -->
+    <string name="receipt_from_label">From: %1$s</string>
+    <string name="receipt_to_label">To: %1$s</string>
+    <string name="receipt_ref_label">Ref: %1$s</string>
+    <string name="receipt_date_label">Date: %1$s</string>
+    <string name="profile_picture_desc">User profile picture</string>
+    <string name="profile_button_label">Profile</string>
+    <string name="log_out">Log Out</string>
+    <string name="about_us">About Us</string>
+
 </resources>
